@@ -2,7 +2,7 @@ swagger: '2.0'
 info:
   title: Transport for London Unified API
   description: To use the API, developers should register for an Application ID and Key.
-  version: "1.0.0"
+  version: "0.0.1"
 # the domain of the service
 host: api.tfl.gov.uk
 # array of all schemes that your API supports
