@@ -4,7 +4,7 @@ info:
   description: To use the API, developers should register for an Application ID and Key.
   version: "1.0.0"
 # the domain of the service
-host: api.tfl.co.uk
+host: api.tfl.gov.uk
 # array of all schemes that your API supports
 schemes:
   - https
