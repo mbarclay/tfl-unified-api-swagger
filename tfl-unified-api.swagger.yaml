@@ -1,15 +1,20 @@
 swagger: '2.0'
+
 info:
   title: Transport for London Unified API
-  description: To use the API, developers should register for an Application ID and Key.
+  description: To use the API, developers should register for an Application ID and Key. Please refer to https://api.tfl.gov.uk
   version: "0.0.1"
+
 # the domain of the service
 host: api.tfl.gov.uk
-# array of all schemes that your API supports
+
+# array of all schemes that the API supports
 schemes:
   - https
 produces:
   - application/json
+
+# global parameters (register for an app_id and app_key at https://api.tfl.gov.uk)
 parameters:
   AppId:
     name: app_id
@@ -22,7 +27,32 @@ parameters:
     in: query
     required: true
 
+# paths
 paths:
+  /BikePoint:
+    parameters:
+      - $ref: '#/parameters/AppId'
+      - $ref: '#/parameters/AppKey'
+    get:
+      summary: 'Gets all bike point locations'
+      tags:
+        - BikePoint
+      responses:
+        200:
+          description: An array of places
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Place'
+        404:
+          description: Not found error
+          schema:
+            $ref: '#/definitions/ApiError'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/HttpError'
+
   /StopPoint/Meta/{metadataType}:
     parameters:
       - $ref: '#/parameters/AppId'
@@ -90,8 +120,6 @@ definitions:
   AccidentDetail:
     type: object
     properties:
-      $type:
-        type: string
       id:
         type: integer
         format: int32
@@ -121,8 +149,6 @@ definitions:
   Prediction:
     type: object
     properties:
-      $type:
-        type: string
       id:
         type: integer
         format: int32
@@ -172,8 +198,6 @@ definitions:
   Casualty:
     type: object
     properties:
-      $type:
-        type: string
       age:
         type: integer
         format: int32
@@ -182,11 +206,44 @@ definitions:
     properties:
       type:
         type: string
+  Place:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        commonName:
+          type: string
+        placeType:
+          type: string
+        lat:
+          type: number
+          format: double
+        lon:
+          type: number
+          format: double
+        additionalProperties:
+          type: array
+          items:
+            $ref: '#/definitions/AdditionalProperties'
+  AdditionalProperties:
+    type: object
+    properties:
+      category:
+        type: string
+      key:
+        type: string
+      sourceSystemKey:
+        type: string
+      value:
+        type: string
+      modified:
+        type: string
+        format: date-time
   ApiError:
     type: object
     properties:
-      $type:
-        type: string
       timestampUtc:
         type: string
         format: date-time
@@ -204,8 +261,6 @@ definitions:
   HttpError:
     type: object
     properties:
-      $type:
-        type: string
       message:
         type: string
       messageDetail:
