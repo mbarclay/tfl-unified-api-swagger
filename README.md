@@ -5,3 +5,5 @@ A swagger 2.0 specification for the unified TfL developer API [api.tfl.gov.uk](h
 The initial production of this specification was kindly provided by TfL using Swashbuckle against their Microsoft .NET WebAPI.
 
 The specification has since undergone a couple of manual clean-ups; as is the nature of evolving API's there maybe some end points missing. The `/Notification` and `/AirQuality` endpoints are not presently included in this specification.
+
+Contributors are most welcome!
