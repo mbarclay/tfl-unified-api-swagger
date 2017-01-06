@@ -1,12 +1,26 @@
 swagger: '2.0'
 info:
   version: v1
-  title: TfL Unified API
-host: 'api.tfl.gov.uk'
+  title: Transport for London Unified API
+host: api.tfl.gov.uk
 schemes:
   - https
+parameters:
+  AppId:
+    name: app_id
+    type: string
+    in: query
+    required: true
+  AppKey:
+    name: app_key
+    type: string
+    in: query
+    required: true
 paths:
   '/AccidentStats/{year}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - AccidentStats
@@ -29,13 +43,39 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/AccidentDetail'
+      deprecated: false
+  /AirQuality:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - AirQuality
+      summary: Gets air quality data feed
+      operationId: AirQuality_Get
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/LondonAirForecast'
       deprecated: false
   /BikePoint:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - BikePoint
-      summary: Gets all bike point locations
+      summary: "Gets all bike point locations. The Place object has an addtionalProperties array which contains the nbBikes, nbDocks and nbSpaces numbers which give the status of the BikePoint. A mismatch in these numbers i.e. nbDocks - (nbBikes + nbSpaces) != 0 indicates broken docks."
       operationId: BikePoint_GetAll
       consumes: []
       produces:
@@ -52,6 +92,9 @@ paths:
               $ref: '#/definitions/Place'
       deprecated: false
   '/BikePoint/{id}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - BikePoint
@@ -78,12 +121,13 @@ paths:
             $ref: '#/definitions/Place'
       deprecated: false
   /BikePoint/Search:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - BikePoint
-      summary: >-
-        Search for bike stations by their name, a bike points name contains
-        location information
+      summary: "Search for bike stations by their name, a bike point's name often contains information about the name of the street or nearby landmarks, for example. Note that the search result does not contain the PlaceProperties i.e. the status or occupancy of the BikePoint, to get that information you should retrieve the BikePoint by its id on /BikePoint/id."
       operationId: BikePoint_Search
       consumes: []
       produces:
@@ -101,13 +145,120 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Place'
+      deprecated: false
+  /Cabwise/search:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - Cabwise
+      summary: Gets taxis and minicabs contact information
+      operationId: Cabwise_Get
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+      parameters:
+        - name: lat
+          in: query
+          description: Latitude
+          required: true
+          type: number
+          format: double
+        - name: lon
+          in: query
+          description: Longitude
+          required: true
+          type: number
+          format: double
+        - name: optype
+          in: query
+          description: 'Operator Type e.g Minicab, Executive, Limousine'
+          required: false
+          type: string
+        - name: wc
+          in: query
+          description: Wheelchair accessible
+          required: false
+          type: string
+        - name: radius
+          in: query
+          description: The radius of the bounding circle in metres
+          required: false
+          type: number
+          format: double
+        - name: name
+          in: query
+          description: Trading name of operating company
+          required: false
+          type: string
+        - name: maxResults
+          in: query
+          description: >-
+            An optional parameter to limit the number of results return. Default
+            and maximum is 20.
+          required: false
+          type: integer
+          format: int32
+        - name: legacyFormat
+          in: query
+          description: Legacy Format
+          required: false
+          type: boolean
+        - name: forceXml
+          in: query
+          description: Force Xml
+          required: false
+          type: boolean
+        - name: twentyFourSevenOnly
+          in: query
+          description: Twenty Four Seven Only
+          required: false
+          type: boolean
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Cabwise'
       deprecated: false
   /CycleSuperhighway:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - CycleSuperhighway
       summary: Gets all cycle superhighways
+      operationId: CycleSuperhighway_Get_All
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+        - application/geo+json
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/CycleSuperhighway'
+      deprecated: false
+  '/CycleSuperhighway/{ids}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - CycleSuperhighway
+      summary: Gets cycle superhighway that matches the given id.
       operationId: CycleSuperhighway_Get
       consumes: []
       produces:
@@ -115,24 +266,7 @@ paths:
         - text/json
         - application/xml
         - text/xml
-      responses:
-        '200':
-          description: OK
-          schema:
-            $ref: '#/definitions/Object'
-      deprecated: false
-  '/CycleSuperhighway/{ids}':
-    get:
-      tags:
-        - CycleSuperhighway
-      summary: Gets cycle superhighway that matches the given id.
-      operationId: CycleSuperhighway_Id_Get
-      consumes: []
-      produces:
-        - application/json
-        - text/json
-        - application/xml
-        - text/xml
+        - application/geo+json
       parameters:
         - name: ids
           in: path
@@ -143,13 +277,16 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            $ref: '#/definitions/CycleSuperhighway'
       deprecated: false
-  '/Journey/Meta/{metadataType}':
+  /Journey/Meta/Modes:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Journey
-      summary: "Returns metadata for methods that act upon the Journeys controller.\r\n            If metadataType is \"modes\", gets a list of all of the available journey planner modes"
+      summary: Gets a list of all of the available journey planner modes
       operationId: Journey_Meta
       consumes: []
       produces:
@@ -157,21 +294,18 @@ paths:
         - text/json
         - application/xml
         - text/xml
-      parameters:
-        - name: metadataType
-          in: path
-          description: the type of metadata to return
-          required: true
-          type: string
-          enum:
-            - Modes
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Mode'
       deprecated: false
   '/Journey/JourneyResults/{from}/to/{to}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Journey
@@ -189,22 +323,28 @@ paths:
         - name: from
           in: path
           description: >-
-            Origin of the journey (if in coordinate format then must be
-            "longitude,latitude")
+            Origin of the journey. Can be WGS84 coordinates expressed as
+            "lat,long", a UK postcode, a Naptan (StopPoint) id, an ICS StopId,
+            or a free-text string (will cause disambiguation unless it exactly
+            matches a point of interest name).
           required: true
           type: string
         - name: to
           in: path
           description: >-
-            Destination of the journey (if in coordinate format then must be
-            "longitude,latitude")
+            Destination of the journey. Can be WGS84 coordinates expressed as
+            "lat,long", a UK postcode, a Naptan (StopPoint) id, an ICS StopId,
+            or a free-text string (will cause disambiguation unless it exactly
+            matches a point of interest name).
           required: true
           type: string
         - name: via
           in: query
           description: >-
-            Travel through (if in coordinate format then must be
-            "longitude,latitude")
+            Travel through point on the journey. Can be WGS84 coordinates
+            expressed as "lat,long", a UK postcode, a Naptan (StopPoint) id, an
+            ICS StopId, or a free-text string (will cause disambiguation unless
+            it exactly matches a point of interest name).
           required: false
           type: string
         - name: nationalSearch
@@ -275,17 +415,23 @@ paths:
           collectionFormat: multi
         - name: fromName
           in: query
-          description: From name is the location name associated with a from coordinate
+          description: >-
+            An optional name to associate with the origin of the journey in the
+            results.
           required: false
           type: string
         - name: toName
           in: query
-          description: To name is the label location associated with a to coordinate
+          description: >-
+            An optional name to associate with the destination of the journey in
+            the results.
           required: false
           type: string
         - name: viaName
           in: query
-          description: Via name is the location name associated with a via coordinate.
+          description: >-
+            An optional name to associate with the via point of the journey in
+            the results.
           required: false
           type: string
         - name: maxTransferMinutes
@@ -375,40 +521,104 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            $ref: '#/definitions/ItineraryResult'
       deprecated: false
-  '/Line/Meta/{metadataType}':
+  /Line/Meta/Modes:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
-      summary: "Get metadata for methods that act upon the Line controller.\r\n            If metadataType is \"Modes\", gets a list of all of the valid modes to filter lines by\r\n            If metadataType is \"Severity\", gets a list of valid severity codes\r\n            If metadataType is \"DisruptionCategories\", gets a list of valid categories to filter disruptions\r\n            If metadataType is \"ServiceTypes\", gets a list of valid ServiceTypes to filter on"
-      operationId: Line_Meta
+      summary: Gets a list of all of the valid modes to filter lines by
+      operationId: Line_MetaModes
       consumes: []
       produces:
         - application/json
         - text/json
         - application/xml
         - text/xml
-      parameters:
-        - name: metadataType
-          in: path
-          description: >-
-            the type of metadata to return (one of Modes,  Severity,
-            DisruptionCategories, ServiceTypes)
-          required: true
-          type: string
-          enum:
-            - Modes
-            - Severity
-            - DisruptionCategories
-            - ServiceTypes
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Mode'
+      deprecated: false
+  /Line/Meta/Severity:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - Line
+      summary: Gets a list of valid severity codes
+      operationId: Line_MetaSeverity
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/StatusSeverity'
+      deprecated: false
+  /Line/Meta/DisruptionCategories:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - Line
+      summary: Gets a list of valid categories to filter disruptions
+      operationId: Line_MetaDisruptionCategories
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              type: string
+      deprecated: false
+  /Line/Meta/ServiceTypes:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - Line
+      summary: Gets a list of valid ServiceTypes to filter on
+      operationId: Line_MetaServiceTypes
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              type: string
       deprecated: false
   '/Line/{ids}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -423,18 +633,23 @@ paths:
       parameters:
         - name: ids
           in: path
-          description: "A comma-separated list of line ids e.g. victoria,circle,N133. Max. approx. 20 ids.\r\n            You can use the /Line/ endpoint to retrieve all lines and their ids."
+          description: >-
+            A comma-separated list of line ids e.g. victoria,circle,N133. Max.
+            approx. 20 ids.
           required: true
-          type: array
-          items:
-            type: string
+          type: string
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Line'
       deprecated: false
   '/Line/Mode/{modes}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -451,16 +666,19 @@ paths:
           in: path
           description: 'A comma-separated list of modes e.g. tube,dlr'
           required: true
-          type: array
-          items:
-            type: string
+          type: string
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Line'
       deprecated: false
   /Line/Route:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -493,9 +711,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Line'
       deprecated: false
   '/Line/{ids}/Route':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -512,11 +735,11 @@ paths:
       parameters:
         - name: ids
           in: path
-          description: "A comma-separated list of line ids e.g. victoria,circle,N133. Max. approx. 20 ids.\r\n            You can use the /Line/ endpoint to retrieve all lines and their ids."
+          description: >-
+            A comma-separated list of line ids e.g. victoria,circle,N133. Max.
+            approx. 20 ids.
           required: true
-          type: array
-          items:
-            type: string
+          type: string
         - name: serviceTypes
           in: query
           description: >-
@@ -535,9 +758,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Line'
       deprecated: false
   '/Line/Mode/{modes}/Route':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -556,9 +784,7 @@ paths:
           in: path
           description: 'A comma-separated list of modes e.g. tube,dlr'
           required: true
-          type: array
-          items:
-            type: string
+          type: string
         - name: serviceTypes
           in: query
           description: >-
@@ -577,9 +803,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Line'
       deprecated: false
   '/Line/{id}/Route/Sequence/{direction}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -596,9 +827,7 @@ paths:
       parameters:
         - name: id
           in: path
-          description: >-
-            A single line id e.g. victoria (you can use the /Line/ endpoint to
-            retrieve all lines and their ids)
+          description: A single line id e.g. victoria
           required: true
           type: string
         - name: direction
@@ -633,9 +862,12 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            $ref: '#/definitions/RouteSequence'
       deprecated: false
   '/Line/{ids}/Status/{startDate}/to/{endDate}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -652,11 +884,11 @@ paths:
       parameters:
         - name: ids
           in: path
-          description: "A comma-separated list of line ids e.g. victoria,circle,N133. Max. approx. 20 ids.\r\n            You can use the /Line/ endpoint to retrieve all lines and their ids."
+          description: >-
+            A comma-separated list of line ids e.g. victoria,circle,N133. Max.
+            approx. 20 ids.
           required: true
-          type: array
-          items:
-            type: string
+          type: string
         - name: detail
           in: query
           description: >-
@@ -676,9 +908,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Line'
       deprecated: false
   '/Line/{ids}/Status':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -693,11 +930,11 @@ paths:
       parameters:
         - name: ids
           in: path
-          description: "A comma-separated list of line ids e.g. victoria,circle,N133. Max. approx. 20 ids.\r\n            You can use the /Line/ endpoint to retrieve all lines and their ids."
+          description: >-
+            A comma-separated list of line ids e.g. victoria,circle,N133. Max.
+            approx. 20 ids.
           required: true
-          type: array
-          items:
-            type: string
+          type: string
         - name: detail
           in: query
           description: >-
@@ -709,9 +946,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Line'
       deprecated: false
   '/Line/Search/{query}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -755,13 +997,16 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            $ref: '#/definitions/RouteSearchResponse'
       deprecated: false
   '/Line/Status/{severity}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
-      summary: "Gets the line status for all lines with a given severity\r\n            A list of valid severity codes can be obtained from a call to Line/Meta/Severity"
+      summary: "Gets the line status for all lines with a given severity A list of valid severity codes can be obtained from a call to Line/Meta/Severity"
       operationId: Line_StatusBySeverity
       consumes: []
       produces:
@@ -780,9 +1025,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Line'
       deprecated: false
   '/Line/Mode/{modes}/Status':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -799,9 +1049,7 @@ paths:
           in: path
           description: 'A comma-separated list of modes to filter by. e.g. tube,dlr'
           required: true
-          type: array
-          items:
-            type: string
+          type: string
         - name: detail
           in: query
           description: >-
@@ -813,9 +1061,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Line'
       deprecated: false
   '/Line/{id}/StopPoints':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -830,18 +1083,21 @@ paths:
       parameters:
         - name: id
           in: path
-          description: >-
-            A single line id e.g. victoria (you can use the /Line/ endpoint to
-            retrieve all lines and their ids)
+          description: A single line id e.g. victoria
           required: true
           type: string
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/StopPoint'
       deprecated: false
   '/Line/{id}/Timetable/{fromStopPointId}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -864,18 +1120,19 @@ paths:
           type: string
         - name: id
           in: path
-          description: >-
-            A single line id e.g. victoria (you can use the /Line/ endpoint to
-            retrieve all lines and their ids)
+          description: A single line id e.g. victoria
           required: true
           type: string
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            $ref: '#/definitions/TimetableResponse'
       deprecated: false
   '/Line/{id}/Timetable/{fromStopPointId}/to/{toStopPointId}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -900,9 +1157,7 @@ paths:
           type: string
         - name: id
           in: path
-          description: >-
-            A single line id e.g. victoria (you can use the /Line/ endpoint to
-            retrieve all lines and their ids)
+          description: A single line id e.g. victoria
           required: true
           type: string
         - name: toStopPointId
@@ -914,9 +1169,12 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            $ref: '#/definitions/TimetableResponse'
       deprecated: false
   '/Line/{ids}/Disruption':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -931,18 +1189,23 @@ paths:
       parameters:
         - name: ids
           in: path
-          description: "A comma-separated list of line ids e.g. victoria,circle,N133. Max. approx. 20 ids.\r\n            You can use the /Line/ endpoint to retrieve all lines and their ids."
+          description: >-
+            A comma-separated list of line ids e.g. victoria,circle,N133. Max.
+            approx. 20 ids.
           required: true
-          type: array
-          items:
-            type: string
+          type: string
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Disruption'
       deprecated: false
   '/Line/Mode/{modes}/Disruption':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -959,16 +1222,19 @@ paths:
           in: path
           description: 'A comma-separated list of modes e.g. tube,dlr'
           required: true
-          type: array
-          items:
-            type: string
+          type: string
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Disruption'
       deprecated: false
   '/Line/{ids}/Arrivals':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
@@ -993,25 +1259,30 @@ paths:
           type: string
         - name: ids
           in: path
-          description: "A comma-separated list of line ids e.g. victoria,circle,N133. Max. approx. 20 ids.\r\n            You can use the /Line/ endpoint to retrieve all lines and their ids."
+          description: >-
+            A comma-separated list of line ids e.g. victoria,circle,N133. Max.
+            approx. 20 ids.
           required: true
-          type: array
-          items:
-            type: string
+          type: string
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Prediction'
       deprecated: false
   '/Line/{ids}/Arrivals/{stopPointId}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Line
       summary: >-
         Get the list of arrival predictions for given line ids based at the
         given stop going in the procided direction
-      operationId: Line_Stop_Point_Arrivals
+      operationId: Line_Arrivals_Stop
       consumes: []
       produces:
         - application/json
@@ -1029,11 +1300,11 @@ paths:
           type: string
         - name: ids
           in: path
-          description: "A comma-separated list of line ids e.g. victoria,circle,N133. Max. approx. 20 ids.\r\n            You can use the /Line/ endpoint to retrieve all lines and their ids."
+          description: >-
+            A comma-separated list of line ids e.g. victoria,circle,N133. Max.
+            approx. 20 ids.
           required: true
-          type: array
-          items:
-            type: string
+          type: string
         - name: direction
           in: query
           description: The direction of travel. Can be inbound or outbound
@@ -1047,13 +1318,18 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Prediction'
       deprecated: false
   /Mode/ActiveServiceTypes:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Mode
-      summary: "Returns the service type active for a mode.\r\n            Currently only supports tube"
+      summary: "Returns the service type active for a mode. Currently only supports tube"
       operationId: Mode_GetActiveServiceTypes
       consumes: []
       produces:
@@ -1065,9 +1341,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/ActiveServiceType'
       deprecated: false
   '/Mode/{mode}/Arrivals':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Mode
@@ -1095,14 +1376,19 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Prediction'
       deprecated: false
   '/Occupancy/CarPark/{id}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Occupancy
       summary: Gets the occupancy for a car park with a given id
-      operationId: Occupancy_Id_Get
+      operationId: Occupancy_Get
       consumes: []
       produces:
         - application/json
@@ -1119,14 +1405,17 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            $ref: '#/definitions/CarParkOccupancy'
       deprecated: false
   /Occupancy/CarPark:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Occupancy
       summary: Gets the occupancy for all car parks that have occupancy data
-      operationId: Occupancy_Get
+      operationId: Occupancy_Get_All
       consumes: []
       produces:
         - application/json
@@ -1137,14 +1426,65 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/CarParkOccupancy'
       deprecated: false
-  '/Place/Meta/{metadataType}':
+  /Place/Meta/Categories:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Place
-      summary: "Returns metadata for methods that act upon the Places controller.\r\n            If metadataType is \"categories\", gets a list of all of the available place property categories and keys, \r\n            grouped by category name. If metadataType is \"placeTypes\", gets a list of the available types of Place."
-      operationId: Place_Meta
+      summary: Gets a list of all of the available place property categories and keys.
+      operationId: Place_MetaCategories
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PlaceCategory'
+      deprecated: false
+  /Place/Meta/PlaceTypes:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - Place
+      summary: Gets a list of the available types of Place.
+      operationId: Place_MetaPlaceTypes
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/PlaceCategory'
+      deprecated: false
+  '/Place/Address/Streets/{postcode}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - Place
+      summary: Gets the set of streets associated with a post code.
+      operationId: Place_GetStreetsByPostCode
       consumes: []
       produces:
         - application/json
@@ -1152,21 +1492,20 @@ paths:
         - application/xml
         - text/xml
       parameters:
-        - name: metadataType
+        - name: postcode
           in: path
-          description: the type of metadata to return
           required: true
           type: string
-          enum:
-            - PlaceTypes
-            - Categories
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            $ref: '#/definitions/StreetResponse'
       deprecated: false
   '/Place/Type/{types}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Place
@@ -1181,7 +1520,7 @@ paths:
       parameters:
         - name: types
           in: path
-          description: "A comma-separated list of the types to return. Max. approx 12 types.\r\n            A valid list of place types can be obtained from the /Place/Meta/placeTypes endpoint."
+          description: "A comma-separated list of the types to return. Max. approx 12 types. A valid list of place types can be obtained from the /Place/Meta/placeTypes endpoint."
           required: true
           type: array
           items:
@@ -1197,51 +1536,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
-      deprecated: false
-  /Place/Waterfreight:
-    get:
-      tags:
-        - Place
-      summary: Gets freight waterways data
-      operationId: Place_GetFreightWaterwaysData
-      consumes: []
-      produces:
-        - application/json
-        - text/json
-        - application/xml
-        - text/xml
-      responses:
-        '200':
-          description: OK
-          schema:
-            $ref: '#/definitions/Object'
-      deprecated: false
-  /Place/WaterwayDetail:
-    get:
-      tags:
-        - Place
-      summary: "Gets the freight waterway data for the given waterwayId containing all the access points as places,\r\n            freight types, kml line string for waterway if any etc."
-      operationId: Place_GetFreightWaterwayDetailData
-      consumes: []
-      produces:
-        - application/json
-        - text/json
-        - application/xml
-        - text/xml
-      parameters:
-        - name: waterwayId
-          in: query
-          description: Id of the given waterway
-          required: true
-          type: string
-      responses:
-        '200':
-          description: OK
-          schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Place'
       deprecated: false
   '/Place/{id}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Place
@@ -1273,13 +1575,18 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Place'
       deprecated: false
   /Place:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Place
-      summary: "Gets the places that lie within the bounding box defined by the lat/lon of its north-west and south-east corners. Optionally filters\r\n            on type and can strip properties for a smaller payload."
+      summary: "Gets the places that lie within the bounding box defined by the lat/lon of its north-west and south-east corners. Optionally filters on type and can strip properties for a smaller payload."
       operationId: Place_GetByGeoBox
       consumes: []
       produces:
@@ -1348,52 +1655,19 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
-      deprecated: false
-  '/Place/{type}/At/{lat}/{lon}':
-    get:
-      tags:
-        - Place
-      summary: Gets any places of the given type at the given latitude and longitude.
-      operationId: Place_GetAt
-      consumes: []
-      produces:
-        - application/json
-        - text/json
-        - application/xml
-        - text/xml
-      parameters:
-        - name: type
-          in: path
-          description: >-
-            The place type (a valid list of place types can be obtained from the
-            /Place/Meta/placeTypes endpoint)
-          required: true
-          type: array
-          items:
-            type: string
-        - name: lat
-          in: path
-          required: true
-          type: number
-          format: double
-        - name: lon
-          in: path
-          required: true
-          type: number
-          format: double
-      responses:
-        '200':
-          description: OK
-          schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/StopPoint'
       deprecated: false
   /Road:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Road
       summary: Gets all roads managed by TfL
-      operationId: Road_Get
+      operationId: Road_Get_All
       consumes: []
       produces:
         - application/json
@@ -1404,14 +1678,19 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/RoadCorridor'
       deprecated: false
   '/Road/{ids}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Road
       summary: Gets the road with the specified id (e.g. A1)
-      operationId: Road_Ids_Get
+      operationId: Road_Get
       consumes: []
       produces:
         - application/json
@@ -1426,16 +1705,19 @@ paths:
             list of supported road identifiers can be found at the /Road/
             endpoint)
           required: true
-          type: array
-          items:
-            type: string
+          type: string
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/RoadCorridor'
       deprecated: false
   '/Road/{ids}/Status':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Road
@@ -1457,9 +1739,7 @@ paths:
             "all" to ignore id filter (a full list of supported road identifiers
             can be found at the /Road/ endpoint)
           required: true
-          type: array
-          items:
-            type: string
+          type: string
         - name: dateRangeNullable.startDate
           in: query
           required: false
@@ -1474,9 +1754,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/RoadCorridor'
       deprecated: false
   '/Road/{ids}/Disruption':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Road
@@ -1488,6 +1773,7 @@ paths:
         - text/json
         - application/xml
         - text/xml
+        - application/geo+json
       parameters:
         - name: ids
           in: path
@@ -1496,9 +1782,7 @@ paths:
             all to ignore id filter (a full list of supported road identifiers
             can be found at the /Road/ endpoint)
           required: true
-          type: array
-          items:
-            type: string
+          type: string
         - name: stripContent
           in: query
           description: >-
@@ -1539,9 +1823,50 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/RoadDisruption'
+      deprecated: false
+  /Road/all/Street/Disruption:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - Road
+      summary: >-
+        Gets a list of disrupted streets. If no date filters are provided,
+        current disruptions are returned.
+      operationId: Road_DisruptedStreets
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+      parameters:
+        - name: startDate
+          in: query
+          description: 'Optional, the start time to filter on.'
+          required: true
+          type: string
+          format: date-time
+        - name: endDate
+          in: query
+          description: 'Optional, The end time to filter on.'
+          required: true
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/RoadCorridor'
       deprecated: false
   '/Road/all/Disruption/{disruptionIds}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Road
@@ -1553,6 +1878,7 @@ paths:
         - text/json
         - application/xml
         - text/xml
+        - application/geo+json
       parameters:
         - name: disruptionIds
           in: path
@@ -1573,40 +1899,62 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            $ref: '#/definitions/RoadDisruption'
       deprecated: false
-  '/Road/Meta/{metadataType}':
+  /Road/Meta/Categories:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Road
-      summary: "Get metadata for methods that act upon the Road controller.\r\n            If metadataType is \"categories\", gets a list of all of the valid categories to filter by\r\n            If metadataType is \"severities\", gets a list of valid severity codes to filter road disruptions by"
-      operationId: Road_Meta
+      summary: Gets a list of valid RoadDisruption categories
+      operationId: Road_MetaCategories
       consumes: []
       produces:
         - application/json
         - text/json
         - application/xml
         - text/xml
-      parameters:
-        - name: metadataType
-          in: path
-          description: the type of metadata to return (one of categories or severities)
-          required: true
-          type: string
-          enum:
-            - Severities
-            - Categories
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              type: string
+      deprecated: false
+  /Road/Meta/Severities:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - Road
+      summary: Gets a list of valid RoadDisruption severity codes
+      operationId: Road_MetaSeverities
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/StatusSeverity'
       deprecated: false
   /Search:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Search
-      summary: "Search the site for occurrences of the query string. The maximum number of results returned is equal to the maximum page size\r\n            of 100. To return subsequent pages, use the paginated overload."
+      summary: "Search the site for occurrences of the query string. The maximum number of results returned is equal to the maximum page size of 100. To return subsequent pages, use the paginated overload."
       operationId: Search_Get
       consumes: []
       produces:
@@ -1624,9 +1972,12 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            $ref: '#/definitions/SearchResponse'
       deprecated: false
   /Search/BusSchedules:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Search
@@ -1650,72 +2001,152 @@ paths:
           schema:
             $ref: '#/definitions/SearchResponse'
       deprecated: false
-  '/Search/Meta/{metadataType}':
+  /Search/Meta/SearchProviders:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Search
-      summary: Returns metadata for search methods.
-      operationId: Search_Meta
+      summary: Gets the available searchProvider names.
+      operationId: Search_MetaSearchProviders
       consumes: []
       produces:
         - application/json
         - text/json
         - application/xml
         - text/xml
-      parameters:
-        - name: metadataType
-          in: path
-          description: >-
-            the type of metadata to return. Valid metadata is categories,
-            searchProviders or sorts
-          required: true
-          type: string
-          enum:
-            - SearchProviders
-            - Categories
-            - Sorts
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              type: string
       deprecated: false
-  '/StopPoint/Meta/{metadataType}':
+  /Search/Meta/Categories:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - Search
+      summary: Gets the available search categories.
+      operationId: Search_MetaCategories
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              type: string
+      deprecated: false
+  /Search/Meta/Sorts:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - Search
+      summary: Gets the available sorting options.
+      operationId: Search_MetaSorts
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              type: string
+      deprecated: false
+  /StopPoint/Meta/Categories:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - StopPoint
-      summary: "Gets metadata for methods that act upon the Stops controller.\r\n            If metadataType is \"categories\", gets a list of all of the available stops property categories and keys, \r\n            grouped by category name. If metadataType is \"stoptypes\", gets a list of the available types of stops. \r\n            If metadataType is \"modes\", gets a list of the valid modes to filter stops by."
-      operationId: StopPoint_Meta
+      summary: Gets the list of available StopPoint additional information categories
+      operationId: StopPoint_MetaCategories
       consumes: []
       produces:
         - application/json
         - text/json
         - application/xml
         - text/xml
-      parameters:
-        - name: metadataType
-          in: path
-          description: 'the type of metadata to return (One of categories, stoptypes, modes)'
-          required: true
-          type: string
-          enum:
-            - Categories
-            - StopTypes
-            - Modes
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/StopPointCategory'
+      deprecated: false
+  /StopPoint/Meta/StopTypes:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - StopPoint
+      summary: Gets the list of available StopPoint types
+      operationId: StopPoint_MetaStopTypes
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              type: string
+      deprecated: false
+  /StopPoint/Meta/Modes:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
+    get:
+      tags:
+        - StopPoint
+      summary: Gets the list of available StopPoint modes
+      operationId: StopPoint_MetaModes
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+        - application/xml
+        - text/xml
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Mode'
       deprecated: false
   '/StopPoint/{ids}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - StopPoint
-      summary: >-
-        Gets a list of <see
-        cref="T:Tfl.Api.Presentation.Entities.StopPoint">StopPoints</see>
-        corresponding to the given list of stop ids.
+      summary: Gets a list of StopPoints corresponding to the given list of stop ids.
       operationId: StopPoint_Get
       consumes: []
       produces:
@@ -1726,18 +2157,21 @@ paths:
       parameters:
         - name: ids
           in: path
-          description: "A comma-separated list of stop point ids (station naptan code e.g. 940GZZLUASL). Max. approx. 20 ids.\r\n            You can use /StopPoint/Search/{query} endpoint to find a stop point id from a station name."
+          description: "A comma-separated list of stop point ids (station naptan code e.g. 940GZZLUASL). Max. approx. 20 ids. You can use /StopPoint/Search/{query} endpoint to find a stop point id from a station name."
           required: true
-          type: array
-          items:
-            type: string
+          type: string
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/StopPoint'
       deprecated: false
   '/StopPoint/Type/{types}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - StopPoint
@@ -1752,7 +2186,7 @@ paths:
       parameters:
         - name: types
           in: path
-          description: "A comma-separated list of the types to return. Max. approx. 12 types. \r\n            A list of valid stop types can be obtained from the StopPoint/meta/stoptypes endpoint."
+          description: "A comma-separated list of the types to return. Max. approx. 12 types.  A list of valid stop types can be obtained from the StopPoint/meta/stoptypes endpoint."
           required: true
           type: array
           items:
@@ -1761,9 +2195,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/StopPoint'
       deprecated: false
   /StopPoint/ServiceTypes:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - StopPoint
@@ -1803,9 +2242,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/LineServiceType'
       deprecated: false
   '/StopPoint/{id}/Arrivals':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - StopPoint
@@ -1830,9 +2274,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Prediction'
       deprecated: false
   '/StopPoint/{id}/CanReachOnLine/{lineId}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - StopPoint
@@ -1876,9 +2325,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/StopPoint'
       deprecated: false
   '/StopPoint/{id}/Route':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - StopPoint
@@ -1919,9 +2373,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/StopPointRouteSection'
       deprecated: false
   '/StopPoint/Mode/{modes}/Disruption':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - StopPoint
@@ -1938,9 +2397,7 @@ paths:
           in: path
           description: 'A comma-seperated list of modes e.g. tube,dlr'
           required: true
-          type: array
-          items:
-            type: string
+          type: string
         - name: includeRouteBlockedStops
           in: query
           description: ''
@@ -1950,9 +2407,14 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/DisruptedPoint'
       deprecated: false
   '/StopPoint/{ids}/Disruption':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - StopPoint
@@ -1969,7 +2431,7 @@ paths:
       parameters:
         - name: ids
           in: path
-          description: "A comma-seperated list of stop point ids. Max. approx. 20 ids.\r\n            You can use /StopPoint/Search/{query} endpoint to find a stop point id from a station name."
+          description: "A comma-seperated list of stop point ids. Max. approx. 20 ids. You can use /StopPoint/Search/{query} endpoint to find a stop point id from a station name."
           required: true
           type: array
           items:
@@ -1986,13 +2448,25 @@ paths:
           description: ''
           required: false
           type: boolean
+        - name: flattenResponse
+          in: query
+          description: >-
+            Specify true to associate all disruptions with parent stop point.
+            (Only applicable when getFamily is true).
+          required: false
+          type: boolean
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/DisruptedPoint'
       deprecated: false
   '/StopPoint/{id}/DirectionTo/{toStopPointId}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - StopPoint
@@ -2032,16 +2506,16 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: string
       deprecated: false
   /StopPoint:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - StopPoint
-      summary: >-
-        Gets a list of
-        {Tfl.Api.Presentation.Entities.StopPoint">StopPoints</see> within
-        <paramref name="radius} by the specified criteria
+      summary: 'Gets a list of StopPoints within {radius} by the specified criteria'
       operationId: StopPoint_GetByGeoPoint
       consumes: []
       produces:
@@ -2115,16 +2589,18 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            $ref: '#/definitions/StopPointsResponse'
       deprecated: false
   '/StopPoint/Mode/{modes}':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - StopPoint
       summary: >-
-        Gets a list of <see
-        cref="T:Tfl.Api.Presentation.Entities.StopPoint">StopPoints</see>
-        filtered by the modes available at that StopPoint.
+        Gets a list of StopPoints filtered by the modes available at that
+        StopPoint.
       operationId: StopPoint_GetByMode
       consumes: []
       produces:
@@ -2137,9 +2613,7 @@ paths:
           in: path
           description: 'A comma-seperated list of modes e.g. tube,dlr'
           required: true
-          type: array
-          items:
-            type: string
+          type: string
         - name: page
           in: query
           description: >-
@@ -2153,75 +2627,19 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
-      deprecated: false
-  '/StopPoint/Search/{query}':
-    get:
-      tags:
-        - StopPoint
-      summary: >-
-        Search <see
-        cref="T:Tfl.Api.Presentation.Entities.StopPoint">StopPoints</see> by
-        their common name, or their 5-digit Countdown Bus Stop Code.
-      operationId: StopPoint_Path_Search
-      consumes: []
-      produces:
-        - application/json
-        - text/json
-        - application/xml
-        - text/xml
-      parameters:
-        - name: query
-          in: path
-          description: >-
-            The query string, case-insensitive. Leading and trailing wildcards
-            are applied automatically.
-          required: true
-          type: string
-        - name: modes
-          in: query
-          description: 'An optional, parameter separated list of the modes to filter by'
-          required: false
-          type: array
-          items:
-            type: string
-          collectionFormat: multi
-        - name: faresOnly
-          in: query
-          description: >-
-            True to only return stations in that have Fares data available for
-            single fares to another station.
-          required: false
-          type: boolean
-        - name: maxResults
-          in: query
-          description: "An optional result limit, defaulting to and with a maximum of 50. Since children of the stop point heirarchy are returned for matches,\r\n            it is possible that the flattened result set will contain more than 50 items."
-          required: false
-          type: integer
-          format: int32
-        - name: lines
-          in: query
-          description: 'An optional, parameter separated list of the lines to filter by'
-          required: false
-          type: array
-          items:
-            type: string
-          collectionFormat: multi
-      responses:
-        '200':
-          description: OK
-          schema:
-            $ref: '#/definitions/Object'
+            $ref: '#/definitions/StopPointsResponse'
       deprecated: false
   /StopPoint/Search:
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - StopPoint
       summary: >-
-        Search <see
-        cref="T:Tfl.Api.Presentation.Entities.StopPoint">StopPoints</see> by
-        their common name, or their 5-digit Countdown Bus Stop Code.
-      operationId: StopPoint_Query_Search
+        Search StopPoints by their common name, or their 5-digit Countdown Bus
+        Stop Code.
+      operationId: StopPoint_Search
       consumes: []
       produces:
         - application/json
@@ -2253,7 +2671,7 @@ paths:
           type: boolean
         - name: maxResults
           in: query
-          description: "An optional result limit, defaulting to and with a maximum of 50. Since children of the stop point heirarchy are returned for matches,\r\n            it is possible that the flattened result set will contain more than 50 items."
+          description: "An optional result limit, defaulting to and with a maximum of 50. Since children of the stop point heirarchy are returned for matches, it is possible that the flattened result set will contain more than 50 items."
           required: false
           type: integer
           format: int32
@@ -2265,44 +2683,21 @@ paths:
           items:
             type: string
           collectionFormat: multi
-      responses:
-        '200':
-          description: OK
-          schema:
-            $ref: '#/definitions/Object'
-      deprecated: false
-  '/StopPoint/Sms/{id}':
-    get:
-      tags:
-        - StopPoint
-      summary: Gets a StopPoint for a given sms code.
-      operationId: StopPoint_GetBySms
-      consumes: []
-      produces:
-        - application/json
-        - text/json
-        - application/xml
-        - text/xml
-      parameters:
-        - name: id
-          in: path
-          description: 'A 5-digit Countdown Bus Stop Code e.g. 73241, 50435, 56334.'
-          required: true
-          type: string
-        - name: output
+        - name: includeHubs
           in: query
-          description: >-
-            If set to "web", a 302 redirect to relevant website bus stop page is
-            returned. Valid values are : web. All other values are ignored.
+          description: 'If true, returns results including HUBs.'
           required: false
-          type: string
+          type: boolean
       responses:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            $ref: '#/definitions/SearchResponse'
       deprecated: false
   '/Vehicle/{ids}/Arrivals':
+    parameters:
+    - $ref: '#/parameters/AppId'
+    - $ref: '#/parameters/AppKey'
     get:
       tags:
         - Vehicle
@@ -2317,7 +2712,9 @@ paths:
       parameters:
         - name: ids
           in: path
-          description: "A comma-separated list of vehicle ids e.g. LX58CFV,LX11AZB,LX58CFE. Max approx. 25 ids.\r\n            You can use the /Line/ endpoint to retrieve all lines and their ids."
+          description: >-
+            A comma-separated list of vehicle ids e.g. LX58CFV,LX11AZB,LX58CFE.
+            Max approx. 25 ids.
           required: true
           type: array
           items:
@@ -2326,18 +2723,196 @@ paths:
         '200':
           description: OK
           schema:
-            $ref: '#/definitions/Object'
+            type: array
+            items:
+              $ref: '#/definitions/Prediction'
       deprecated: false
 definitions:
-  Object:
+  StreetResponse:
     type: object
-    properties: {}
+    properties:
+      postCode:
+        type: string
+      matches:
+        type: array
+        items:
+          $ref: '#/definitions/StreetMatch'
+  StreetMatch:
+    type: object
+    properties:
+      street:
+        type: string
+  Cabwise:
+    type: object
+    properties:
+      Operators:
+        $ref: '#/definitions/Operators'
+  Operators:
+    type: object
+    properties:
+      OperatorList:
+        type: array
+        items:
+          $ref: '#/definitions/Operator'
+  Operator:
+    type: object
+    properties:
+      OperatorId:
+        format: int32
+        type: integer
+      OrganisationName:
+        type: string
+      TradingName:
+        type: string
+      AlsoKnownAs:
+        type: array
+        items:
+          type: string
+      CentreId:
+        format: int32
+        type: integer
+      AddressLine1:
+        type: string
+      AddressLine2:
+        type: string
+      AddressLine3:
+        type: string
+      Town:
+        type: string
+      County:
+        type: string
+      Postcode:
+        type: string
+      BookingsPhoneNumber:
+        type: string
+      BookingsEmail:
+        type: string
+      PublicAccess:
+        type: boolean
+      PublicWaitingRoom:
+        type: boolean
+      WheelchairAccessible:
+        type: boolean
+      CreditDebitCard:
+        type: boolean
+      ChequeBankersCard:
+        type: boolean
+      AccountServicesAvailable:
+        type: boolean
+      HoursOfOperation24X7:
+        type: boolean
+      HoursOfOperationMonThu:
+        type: boolean
+      StartTimeMonThu:
+        type: string
+      EndTimeMonThu:
+        type: string
+      HoursOfOperationFri:
+        type: boolean
+      StartTimeFri:
+        type: string
+      EndTimeFri:
+        type: string
+      HoursOfOperationSat:
+        type: boolean
+      StartTimeSat:
+        type: string
+      EndTimeSat:
+        type: string
+      HoursOfOperationSun:
+        type: boolean
+      StartTimeSun:
+        type: string
+      EndTimeSun:
+        type: string
+      HoursOfOperationPubHol:
+        type: boolean
+      StartTimePubHol:
+        type: string
+      EndTimePubHol:
+        type: string
+      NumberOfVehicles:
+        format: int32
+        type: integer
+      NumberOfVehiclesWheelchair:
+        format: int32
+        type: integer
+      Longitude:
+        format: double
+        type: number
+      Latitude:
+        format: double
+        type: number
+      OperatorTypes:
+        type: array
+        items:
+          type: string
+      Distance:
+        format: double
+        type: number
+  AccidentDetail:
+    type: object
+    properties:
+      id:
+        format: int32
+        type: integer
+      lat:
+        format: double
+        type: number
+      lon:
+        format: double
+        type: number
+      location:
+        type: string
+      date:
+        format: date-time
+        type: string
+      severity:
+        type: string
+      borough:
+        type: string
+      casualties:
+        type: array
+        items:
+          $ref: '#/definitions/Casualty'
+      vehicles:
+        type: array
+        items:
+          $ref: '#/definitions/Vehicle'
+  Casualty:
+    type: object
+    properties:
+      age:
+        format: int32
+        type: integer
+      class:
+        type: string
+      severity:
+        type: string
+      mode:
+        type: string
+      ageBand:
+        type: string
+  Vehicle:
+    type: object
+    properties:
+      type:
+        type: string
   Place:
     type: object
     properties:
+      id:
+        description: A unique identifier.
+        type: string
+      url:
+        description: The unique location of this resource.
+        type: string
+      commonName:
+        description: A human readable name.
+        type: string
       distance:
         format: double
-        description: "The distance of the place from its search point, if this is the result\r\n            of a geographical search, otherwise zero."
+        description: "The distance of the place from its search point, if this is the result of a geographical search, otherwise zero."
         type: number
       placeType:
         description: The type of Place. See /Place/Meta/placeTypes for possible values.
@@ -2379,6 +2954,1208 @@ definitions:
       modified:
         format: date-time
         type: string
+  CycleSuperhighway:
+    type: object
+    properties:
+      id:
+        description: The Id
+        type: string
+      label:
+        description: The long label to show on maps when zoomed in
+        type: string
+      labelShort:
+        description: The short label to show on maps
+        type: string
+      geography:
+        $ref: '#/definitions/DbGeography'
+      segmented:
+        description: True if the route is split into segments
+        type: boolean
+      modified:
+        format: date-time
+        description: When the data was last updated
+        type: string
+  DbGeography:
+    type: object
+    properties:
+      geography:
+        $ref: '#/definitions/DbGeographyWellKnownValue'
+  DbGeographyWellKnownValue:
+    type: object
+    properties:
+      coordinateSystemId:
+        format: int32
+        type: integer
+      wellKnownText:
+        type: string
+      wellKnownBinary:
+        format: byte
+        type: string
+  Mode:
+    type: object
+    properties:
+      isTflService:
+        type: boolean
+      isFarePaying:
+        type: boolean
+      isScheduledService:
+        type: boolean
+      modeName:
+        type: string
+  ItineraryResult:
+    description: A DTO representing a list of possible journeys.
+    type: object
+    properties:
+      journeys:
+        type: array
+        items:
+          $ref: '#/definitions/Journey'
+      lines:
+        type: array
+        items:
+          $ref: '#/definitions/Line'
+      cycleHireDockingStationData:
+        $ref: '#/definitions/JourneyPlannerCycleHireDockingStationData'
+      stopMessages:
+        type: array
+        items:
+          type: string
+      recommendedMaxAgeMinutes:
+        format: int32
+        type: integer
+      searchCriteria:
+        $ref: '#/definitions/SearchCriteria'
+      journeyVector:
+        $ref: '#/definitions/JourneyVector'
+  Journey:
+    description: Object that represents an end to end journey (see schematic).
+    type: object
+    properties:
+      startDateTime:
+        format: date-time
+        type: string
+      duration:
+        format: int32
+        type: integer
+      arrivalDateTime:
+        format: date-time
+        type: string
+      legs:
+        type: array
+        items:
+          $ref: '#/definitions/Leg'
+  Line:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      modeName:
+        type: string
+      disruptions:
+        type: array
+        items:
+          $ref: '#/definitions/Disruption'
+      created:
+        format: date-time
+        type: string
+      modified:
+        format: date-time
+        type: string
+      lineStatuses:
+        type: array
+        items:
+          $ref: '#/definitions/LineStatus'
+      routeSections:
+        type: array
+        items:
+          $ref: '#/definitions/MatchedRoute'
+      serviceTypes:
+        type: array
+        items:
+          $ref: '#/definitions/LineServiceTypeInfo'
+  LondonAirForecast:
+    type: object
+    properties:
+      updatePeriod:
+        type: string
+      updateFrequency:
+        type: string
+      forecastURL:
+        type: string
+      disclaimerText:
+        type: string
+      currentForecast:
+        type: array
+        items:
+          $ref: '#/definitions/CurrentForecast'
+  CurrentForecast:
+    type: object
+    properties:
+      forecastType:
+        type: string
+      forecastID:
+        type: string
+      publishedDate:
+        format: date-time
+        type: string
+      fromDate:
+        format: date-time
+        type: string
+      toDate:
+        format: date-time
+        type: string
+      forecastBand:
+        type: string
+      forecastSummary:
+        type: string
+      nO2Band:
+        type: string
+      o3Band:
+        type: string
+      pM10Band:
+        type: string
+      pM25Band:
+        type: string
+      sO2Band:
+        type: string
+      forecastText:
+        type: string
+  JourneyPlannerCycleHireDockingStationData:
+    type: object
+    properties:
+      originNumberOfBikes:
+        format: int32
+        type: integer
+      destinationNumberOfBikes:
+        format: int32
+        type: integer
+      originNumberOfEmptySlots:
+        format: int32
+        type: integer
+      destinationNumberOfEmptySlots:
+        format: int32
+        type: integer
+      originId:
+        type: string
+      destinationId:
+        type: string
+  SearchCriteria:
+    type: object
+    properties:
+      dateTime:
+        format: date-time
+        type: string
+      dateTimeType:
+        enum:
+          - Arriving
+          - Departing
+        type: string
+      timeAdjustments:
+        $ref: '#/definitions/TimeAdjustments'
+  JourneyVector:
+    type: object
+    properties:
+      from:
+        type: string
+      to:
+        type: string
+      via:
+        type: string
+      uri:
+        type: string
+  Leg:
+    type: object
+    properties:
+      duration:
+        format: int32
+        type: integer
+      speed:
+        type: string
+      instruction:
+        $ref: '#/definitions/Instruction'
+      obstacles:
+        type: array
+        items:
+          $ref: '#/definitions/Obstacle'
+      departureTime:
+        format: date-time
+        type: string
+      arrivalTime:
+        format: date-time
+        type: string
+      departurePoint:
+        $ref: '#/definitions/Point'
+      arrivalPoint:
+        $ref: '#/definitions/Point'
+      path:
+        $ref: '#/definitions/Path'
+      routeOptions:
+        type: array
+        items:
+          $ref: '#/definitions/RouteOption'
+      mode:
+        $ref: '#/definitions/Identifier'
+      disruptions:
+        type: array
+        items:
+          $ref: '#/definitions/Disruption'
+      plannedWorks:
+        type: array
+        items:
+          $ref: '#/definitions/PlannedWork'
+      distance:
+        format: double
+        type: number
+      isDisrupted:
+        type: boolean
+        readOnly: true
+      hasFixedLocations:
+        type: boolean
+        readOnly: true
+  Disruption:
+    description: Represents a disruption to a route within the transport network.
+    type: object
+    properties:
+      category:
+        description: Gets or sets the category of this dispruption.
+        enum:
+          - Undefined
+          - RealTime
+          - PlannedWork
+          - Information
+          - Event
+          - Crowding
+          - StatusAlert
+        type: string
+      type:
+        description: Gets or sets the disruption type of this dispruption.
+        type: string
+      categoryDescription:
+        description: Gets or sets the description of the category.
+        type: string
+      description:
+        description: Gets or sets the description of this disruption.
+        type: string
+      additionalInfo:
+        description: Gets or sets the additionaInfo of this disruption.
+        type: string
+      created:
+        format: date-time
+        description: Gets or sets the date/time when this disruption was created.
+        type: string
+      lastUpdate:
+        format: date-time
+        description: Gets or sets the date/time when this disruption was last updated.
+        type: string
+      affectedRoutes:
+        description: Gets or sets the routes affected by this disruption
+        type: array
+        items:
+          $ref: '#/definitions/RouteSection'
+      affectedStops:
+        description: Gets or sets the stops affected by this disruption
+        type: array
+        items:
+          $ref: '#/definitions/StopPoint'
+      isBlocking:
+        type: boolean
+      isWholeLine:
+        type: boolean
+      closureText:
+        type: string
+  LineStatus:
+    type: object
+    properties:
+      id:
+        format: int32
+        type: integer
+      lineId:
+        type: string
+      statusSeverity:
+        format: int32
+        type: integer
+      statusSeverityDescription:
+        type: string
+      reason:
+        type: string
+      created:
+        format: date-time
+        type: string
+      modified:
+        format: date-time
+        type: string
+      validityPeriods:
+        type: array
+        items:
+          $ref: '#/definitions/ValidityPeriod'
+      disruption:
+        $ref: '#/definitions/Disruption'
+  MatchedRoute:
+    type: object
+    properties:
+      routeCode:
+        description: The route code
+        type: string
+      name:
+        description: Name such as "72"
+        type: string
+      direction:
+        description: 'eg: N or S or I or O'
+        type: string
+      originationName:
+        description: 'eg: Origination Name'
+        type: string
+      destinationName:
+        description: 'eg: Destination Name'
+        type: string
+      originator:
+        description: 'eg: Origination'
+        type: string
+      destination:
+        description: 'eg: Destination'
+        type: string
+      serviceType:
+        description: 'eg: Regular, Night'
+        type: string
+  LineServiceTypeInfo:
+    type: object
+    properties:
+      name:
+        type: string
+      uri:
+        type: string
+  TimeAdjustments:
+    type: object
+    properties:
+      earliest:
+        $ref: '#/definitions/TimeAdjustment'
+      earlier:
+        $ref: '#/definitions/TimeAdjustment'
+      later:
+        $ref: '#/definitions/TimeAdjustment'
+      latest:
+        $ref: '#/definitions/TimeAdjustment'
+  Instruction:
+    type: object
+    properties:
+      summary:
+        type: string
+      detailed:
+        type: string
+      steps:
+        type: array
+        items:
+          $ref: '#/definitions/InstructionStep'
+  Obstacle:
+    type: object
+    properties:
+      type:
+        type: string
+      incline:
+        type: string
+      stopId:
+        format: int32
+        type: integer
+      position:
+        type: string
+  Point:
+    description: >-
+      Represents a point located at a latitude and longitude using the WGS84
+      co-ordinate system.
+    type: object
+    properties:
+      lat:
+        format: double
+        description: WGS84 latitude of the location.
+        type: number
+      lon:
+        format: double
+        description: WGS84 longitude of the location.
+        type: number
+  Path:
+    type: object
+    properties:
+      lineString:
+        type: string
+      stopPoints:
+        type: array
+        items:
+          $ref: '#/definitions/Identifier'
+      elevation:
+        type: array
+        items:
+          $ref: '#/definitions/JpElevation'
+  RouteOption:
+    type: object
+    properties:
+      id:
+        description: The Id of the route
+        type: string
+      name:
+        description: Name such as "72"
+        type: string
+      directions:
+        type: array
+        items:
+          type: string
+      lineIdentifier:
+        $ref: '#/definitions/Identifier'
+  Identifier:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      uri:
+        type: string
+      fullName:
+        type: string
+      type:
+        type: string
+  PlannedWork:
+    type: object
+    properties:
+      id:
+        type: string
+      description:
+        type: string
+      createdDateTime:
+        format: date-time
+        type: string
+      lastUpdateDateTime:
+        format: date-time
+        type: string
+  RouteSection:
+    type: object
+    properties:
+      id:
+        description: The Id of the route
+        type: string
+      lineId:
+        description: The Id of the Line
+        type: string
+      routeCode:
+        description: The route code
+        type: string
+      name:
+        description: Name such as "72"
+        type: string
+      direction:
+        description: 'eg: N or S or I or O'
+        type: string
+      lineString:
+        description: 'eg: Path coordindates'
+        type: string
+      originationName:
+        description: 'eg: Origination Name'
+        type: string
+      destinationName:
+        description: 'eg: Destination Name'
+        type: string
+      routeSectionNaptanEntrySequence:
+        type: array
+        items:
+          $ref: '#/definitions/RouteSectionNaptanEntrySequence'
+  StopPoint:
+    type: object
+    properties:
+      naptanId:
+        type: string
+      platformName:
+        type: string
+      indicator:
+        description: The indicator of the stop point e.g. "Stop K"
+        type: string
+      stopLetter:
+        description: 'The stop letter, if it could be cleansed from the Indicator e.g. "K"'
+        type: string
+      modes:
+        type: array
+        items:
+          type: string
+      icsCode:
+        type: string
+      smsCode:
+        type: string
+      stopType:
+        type: string
+      stationNaptan:
+        type: string
+      accessibilitySummary:
+        type: string
+      hubNaptanCode:
+        type: string
+      lines:
+        type: array
+        items:
+          $ref: '#/definitions/Identifier'
+      lineGroup:
+        type: array
+        items:
+          $ref: '#/definitions/LineGroup'
+      lineModeGroups:
+        type: array
+        items:
+          $ref: '#/definitions/LineModeGroup'
+      fullName:
+        type: string
+      naptanMode:
+        type: string
+      status:
+        type: boolean
+      id:
+        description: A unique identifier.
+        type: string
+      url:
+        description: The unique location of this resource.
+        type: string
+      commonName:
+        description: A human readable name.
+        type: string
+      distance:
+        format: double
+        description: "The distance of the place from its search point, if this is the result of a geographical search, otherwise zero."
+        type: number
+      placeType:
+        description: The type of Place. See /Place/Meta/placeTypes for possible values.
+        type: string
+      additionalProperties:
+        description: >-
+          A bag of additional key/value pairs with extra information about this
+          place.
+        type: array
+        items:
+          $ref: '#/definitions/AdditionalProperties'
+      children:
+        type: array
+        items:
+          $ref: '#/definitions/Place'
+      childrenUrls:
+        type: array
+        items:
+          type: string
+      lat:
+        format: double
+        description: WGS84 latitude of the location.
+        type: number
+      lon:
+        format: double
+        description: WGS84 longitude of the location.
+        type: number
+  ValidityPeriod:
+    description: Represents a period for which a planned works is valid.
+    type: object
+    properties:
+      fromDate:
+        format: date-time
+        description: Gets or sets the start date.
+        type: string
+      toDate:
+        format: date-time
+        description: Gets or sets the end date.
+        type: string
+      isNow:
+        description: If true is a realtime status rather than planned or info
+        type: boolean
+  TimeAdjustment:
+    type: object
+    properties:
+      date:
+        type: string
+      time:
+        type: string
+      timeIs:
+        type: string
+      uri:
+        type: string
+  InstructionStep:
+    type: object
+    properties:
+      description:
+        type: string
+      turnDirection:
+        type: string
+      streetName:
+        type: string
+      distance:
+        format: int32
+        type: integer
+      cumulativeDistance:
+        format: int32
+        type: integer
+      skyDirection:
+        format: int32
+        type: integer
+      skyDirectionDescription:
+        enum:
+          - North
+          - NorthEast
+          - East
+          - SouthEast
+          - South
+          - SouthWest
+          - West
+          - NorthWest
+        type: string
+      cumulativeTravelTime:
+        format: int32
+        type: integer
+      latitude:
+        format: double
+        type: number
+      longitude:
+        format: double
+        type: number
+      pathAttribute:
+        $ref: '#/definitions/PathAttribute'
+      descriptionHeading:
+        type: string
+      trackType:
+        enum:
+          - CycleSuperHighway
+          - CanalTowpath
+          - QuietRoad
+          - ProvisionForCyclists
+          - BusyRoads
+          - None
+          - PushBike
+        type: string
+  JpElevation:
+    type: object
+    properties:
+      distance:
+        format: int32
+        type: integer
+      startLat:
+        format: double
+        type: number
+      startLon:
+        format: double
+        type: number
+      endLat:
+        format: double
+        type: number
+      endLon:
+        format: double
+        type: number
+      heightFromPreviousPoint:
+        format: int32
+        type: integer
+      gradient:
+        format: double
+        type: number
+  RouteSectionNaptanEntrySequence:
+    type: object
+    properties:
+      ordinal:
+        format: int32
+        type: integer
+      stopPoint:
+        $ref: '#/definitions/StopPoint'
+  LineGroup:
+    type: object
+    properties:
+      naptanIdReference:
+        type: string
+      stationAtcoCode:
+        type: string
+      lineIdentifier:
+        type: array
+        items:
+          type: string
+  LineModeGroup:
+    type: object
+    properties:
+      modeName:
+        type: string
+      lineIdentifier:
+        type: array
+        items:
+          type: string
+  PathAttribute:
+    type: object
+    properties:
+      name:
+        type: string
+      value:
+        type: string
+  StatusSeverity:
+    type: object
+    properties:
+      modeName:
+        type: string
+      severityLevel:
+        format: int32
+        type: integer
+      description:
+        type: string
+  RouteSequence:
+    type: object
+    properties:
+      lineId:
+        type: string
+      lineName:
+        type: string
+      direction:
+        type: string
+      isOutboundOnly:
+        type: boolean
+      mode:
+        type: string
+      lineStrings:
+        type: array
+        items:
+          type: string
+      stations:
+        type: array
+        items:
+          $ref: '#/definitions/MatchedStop'
+      stopPointSequences:
+        type: array
+        items:
+          $ref: '#/definitions/StopPointSequence'
+      orderedLineRoutes:
+        type: array
+        items:
+          $ref: '#/definitions/OrderedRoute'
+  MatchedStop:
+    type: object
+    properties:
+      routeId:
+        format: int32
+        type: integer
+      parentId:
+        type: string
+      stationId:
+        type: string
+      icsId:
+        type: string
+      topMostParentId:
+        type: string
+      direction:
+        type: string
+      towards:
+        type: string
+      modes:
+        type: array
+        items:
+          type: string
+      stopType:
+        type: string
+      stopLetter:
+        type: string
+      zone:
+        type: string
+      accessibilitySummary:
+        type: string
+      hasDisruption:
+        type: boolean
+      lines:
+        type: array
+        items:
+          $ref: '#/definitions/Identifier'
+      status:
+        type: boolean
+      id:
+        type: string
+      url:
+        type: string
+      name:
+        type: string
+      lat:
+        format: double
+        type: number
+      lon:
+        format: double
+        type: number
+  StopPointSequence:
+    type: object
+    properties:
+      lineId:
+        type: string
+      lineName:
+        type: string
+      direction:
+        type: string
+      branchId:
+        format: int32
+        description: The id of this branch.
+        type: integer
+      nextBranchIds:
+        description: "The ids of the next branch(es) in the sequence. Note that the next and previous branch id can be identical in the case of a looped route e.g. the Circle line."
+        type: array
+        items:
+          format: int32
+          type: integer
+      prevBranchIds:
+        description: "The ids of the previous branch(es) in the sequence. Note that the next and previous branch id can be identical in the case of a looped route e.g. the Circle line."
+        type: array
+        items:
+          format: int32
+          type: integer
+      stopPoint:
+        type: array
+        items:
+          $ref: '#/definitions/MatchedStop'
+      serviceType:
+        enum:
+          - Regular
+          - Night
+        type: string
+  OrderedRoute:
+    type: object
+    properties:
+      name:
+        type: string
+      naptanIds:
+        type: array
+        items:
+          type: string
+      serviceType:
+        type: string
+  RouteSearchResponse:
+    type: object
+    properties:
+      input:
+        type: string
+      searchMatches:
+        type: array
+        items:
+          $ref: '#/definitions/RouteSearchMatch'
+  RouteSearchMatch:
+    type: object
+    properties:
+      lineId:
+        type: string
+      mode:
+        type: string
+      lineName:
+        type: string
+      lineRouteSection:
+        type: array
+        items:
+          $ref: '#/definitions/LineRouteSection'
+      matchedRouteSections:
+        type: array
+        items:
+          $ref: '#/definitions/MatchedRouteSections'
+      matchedStops:
+        type: array
+        items:
+          $ref: '#/definitions/MatchedStop'
+      id:
+        type: string
+      url:
+        type: string
+      name:
+        type: string
+      lat:
+        format: double
+        type: number
+      lon:
+        format: double
+        type: number
+  LineRouteSection:
+    type: object
+    properties:
+      routeId:
+        format: int32
+        type: integer
+      direction:
+        type: string
+      destination:
+        type: string
+      fromStation:
+        type: string
+      toStation:
+        type: string
+      serviceType:
+        type: string
+      vehicleDestinationText:
+        type: string
+  MatchedRouteSections:
+    type: object
+    properties:
+      id:
+        format: int32
+        type: integer
+  TimetableResponse:
+    type: object
+    properties:
+      lineId:
+        type: string
+      lineName:
+        type: string
+      direction:
+        type: string
+      pdfUrl:
+        type: string
+      stations:
+        type: array
+        items:
+          $ref: '#/definitions/MatchedStop'
+      stops:
+        type: array
+        items:
+          $ref: '#/definitions/MatchedStop'
+      timetable:
+        $ref: '#/definitions/Timetable'
+      disambiguation:
+        $ref: '#/definitions/Disambiguation'
+      statusErrorMessage:
+        type: string
+  Timetable:
+    type: object
+    properties:
+      departureStopId:
+        type: string
+      routes:
+        type: array
+        items:
+          $ref: '#/definitions/TimetableRoute'
+  Disambiguation:
+    type: object
+    properties:
+      disambiguationOptions:
+        type: array
+        items:
+          $ref: '#/definitions/DisambiguationOption'
+  TimetableRoute:
+    type: object
+    properties:
+      stationIntervals:
+        type: array
+        items:
+          $ref: '#/definitions/StationInterval'
+      schedules:
+        type: array
+        items:
+          $ref: '#/definitions/Schedule'
+  DisambiguationOption:
+    type: object
+    properties:
+      description:
+        type: string
+      uri:
+        type: string
+  StationInterval:
+    type: object
+    properties:
+      id:
+        type: string
+      intervals:
+        type: array
+        items:
+          $ref: '#/definitions/Interval'
+  Schedule:
+    type: object
+    properties:
+      name:
+        type: string
+      knownJourneys:
+        type: array
+        items:
+          $ref: '#/definitions/KnownJourney'
+      firstJourney:
+        $ref: '#/definitions/KnownJourney'
+      lastJourney:
+        $ref: '#/definitions/KnownJourney'
+      periods:
+        type: array
+        items:
+          $ref: '#/definitions/Period'
+  Interval:
+    type: object
+    properties:
+      stopId:
+        type: string
+      timeToArrival:
+        format: double
+        type: number
+  KnownJourney:
+    type: object
+    properties:
+      hour:
+        type: string
+      minute:
+        type: string
+      intervalId:
+        format: int32
+        type: integer
+  Period:
+    type: object
+    properties:
+      type:
+        enum:
+          - Normal
+          - FrequencyHours
+          - FrequencyMinutes
+          - Unknown
+        type: string
+      fromTime:
+        $ref: '#/definitions/TwentyFourHourClockTime'
+      toTime:
+        $ref: '#/definitions/TwentyFourHourClockTime'
+      frequency:
+        $ref: '#/definitions/ServiceFrequency'
+  TwentyFourHourClockTime:
+    type: object
+    properties:
+      hour:
+        type: string
+      minute:
+        type: string
+  ServiceFrequency:
+    type: object
+    properties:
+      lowestFrequency:
+        format: double
+        type: number
+      highestFrequency:
+        format: double
+        type: number
+  Prediction:
+    description: DTO to capture the prediction details
+    type: object
+    properties:
+      id:
+        description: The identitier for the prediction
+        type: string
+      operationType:
+        format: int32
+        description: >-
+          The type of the operation (1: is new or has been updated, 2: should be
+          deleted from any client cache)
+        type: integer
+      vehicleId:
+        description: >-
+          The actual vehicle in transit (for train modes, the leading car of the
+          rolling set)
+        type: string
+      naptanId:
+        description: Identifier for the prediction
+        type: string
+      stationName:
+        description: Station name
+        type: string
+      lineId:
+        description: Unique identifier for the Line
+        type: string
+      lineName:
+        description: Line Name
+        type: string
+      platformName:
+        description: 'Platform name (for bus, this is the stop letter)'
+        type: string
+      direction:
+        description: Direction (unified to inbound/outbound)
+        type: string
+      bearing:
+        description: Bearing (between 0 to 359)
+        type: string
+      destinationNaptanId:
+        description: Naptan Identifier for the prediction's destination
+        type: string
+      destinationName:
+        description: Name of the destination
+        type: string
+      timestamp:
+        format: date-time
+        description: >-
+          Timestamp for when the prediction was inserted/modified (source column
+          drives what objects are broadcast on each iteration)
+        type: string
+      timeToStation:
+        format: int32
+        description: Prediction of the Time to station in seconds
+        type: integer
+      currentLocation:
+        description: The current location of the vehicle.
+        type: string
+      towards:
+        description: >-
+          Routing information or other descriptive text about the path of the
+          vehicle towards the destination
+        type: string
+      expectedArrival:
+        format: date-time
+        description: The expected arrival time of the vehicle at the stop/station
+        type: string
+      timeToLive:
+        format: date-time
+        description: The expiry time for the prediction
+        type: string
+      modeName:
+        description: The mode name of the station/line the prediction relates to
+        type: string
+      timing:
+        $ref: '#/definitions/PredictionTiming'
+  PredictionTiming:
+    type: object
+    properties:
+      countdownServerAdjustment:
+        type: string
+      source:
+        format: date-time
+        type: string
+      insert:
+        format: date-time
+        type: string
+      read:
+        format: date-time
+        type: string
+      sent:
+        format: date-time
+        type: string
+      received:
+        format: date-time
+        type: string
+  ActiveServiceType:
+    type: object
+    properties:
+      mode:
+        type: string
+      serviceType:
+        type: string
+  CarParkOccupancy:
+    type: object
+    properties:
+      id:
+        type: string
+      bays:
+        type: array
+        items:
+          $ref: '#/definitions/Bay'
+      name:
+        type: string
+      carParkDetailsUrl:
+        type: string
+  Bay:
+    type: object
+    properties:
+      bayType:
+        type: string
+      bayCount:
+        format: int32
+        type: integer
+      free:
+        format: int32
+        type: integer
+      occupied:
+        format: int32
+        type: integer
+  PlaceCategory:
+    type: object
+    properties:
+      category:
+        type: string
+      availableKeys:
+        type: array
+        items:
+          type: string
   SearchResponse:
     type: object
     properties:
@@ -2420,3 +4197,412 @@ definitions:
       lon:
         format: double
         type: number
+  RoadCorridor:
+    type: object
+    properties:
+      id:
+        description: The Id of the Corridor e.g. "A406"
+        type: string
+      displayName:
+        description: "The display name of the Corridor e.g. \"North Circular (A406)\". This may be identical to the Id."
+        type: string
+      group:
+        description: >-
+          The group name of the Corridor e.g. "Central London". Most corridors
+          are not grouped, in which case this field can be null.
+        type: string
+      statusSeverity:
+        description: Standard multi-mode status severity code
+        type: string
+      statusSeverityDescription:
+        description: Description of the status severity as applied to RoadCorridors
+        type: string
+      bounds:
+        description: "The Bounds of the Corridor, given by the south-east followed by the north-west co-ordinate pair in geoJSON format e.g. \"[[-1.241531,51.242151],[1.641223,53.765721]]\""
+        type: string
+      envelope:
+        description: "The Envelope of the Corridor, given by the corner co-ordinates of a rectangular (four-point) polygon in geoJSON format e.g. \"[[-1.241531,51.242151],[-1.241531,53.765721],[1.641223,53.765721],[1.641223,51.242151]]\""
+        type: string
+      statusAggregationStartDate:
+        format: date-time
+        description: >-
+          The start of the period over which status has been aggregated, or null
+          if this is the current corridor status.
+        type: string
+      statusAggregationEndDate:
+        format: date-time
+        description: >-
+          The end of the period over which status has been aggregated, or null
+          if this is the current corridor status.
+        type: string
+      url:
+        description: URL to retrieve this Corridor.
+        type: string
+  RoadDisruption:
+    type: object
+    properties:
+      id:
+        description: Unique identifier for the road disruption
+        type: string
+      url:
+        description: URL to retrieve this road disruption
+        type: string
+      point:
+        description: >-
+          Latitude and longitude (WGS84) of the centroid of the disruption,
+          stored in a geoJSON-formatted string.
+        type: string
+      severity:
+        description: A description of the severity of the disruption.
+        type: string
+      ordinal:
+        format: int32
+        description: >-
+          An ordinal of the disruption based on severity, level of interest and
+          corridor.
+        type: integer
+      category:
+        description: 'Describes the nature of disruption e.g. Traffic Incidents, Works'
+        type: string
+      subCategory:
+        description: >-
+          Describes the sub-category of disruption e.g. Collapsed Manhole,
+          Abnormal Load
+        type: string
+      comments:
+        description: >-
+          Full text of comments describing the disruption, including details of
+          any road closures and diversions, where appropriate.
+        type: string
+      currentUpdate:
+        description: "Text of the most recent update from the LSTCC on the state of the  disruption, including the current traffic impact and any advice to  road users."
+        type: string
+      currentUpdateDateTime:
+        format: date-time
+        description: "The time when the last CurrentUpdate description was recorded,  or null if no CurrentUpdate has been applied."
+        type: string
+      corridorIds:
+        description: 'The Ids of affected corridors, if any.'
+        type: array
+        items:
+          type: string
+      startDateTime:
+        format: date-time
+        description: "The date and time which the disruption started. For a planned disruption (i.e. planned road works) this date will be in the future. For unplanned disruptions, this will default to the date on which the disruption was first recorded, but may be adjusted by the operator."
+        type: string
+      endDateTime:
+        format: date-time
+        description: "The date and time on which the disruption ended. For planned disruptions, this date will have a valid value. For unplanned  disruptions in progress, this field will be omitted."
+        type: string
+      lastModifiedTime:
+        format: date-time
+        description: "The date and time on which the disruption was last modified in the system. This information can reliably be used by a developer to quickly compare two instances of the same disruption to determine if it has been changed."
+        type: string
+      levelOfInterest:
+        description: "This describes the level of potential impact on traffic operations of the disruption.  High = e.g. a one-off disruption on a major or high profile route which will require a high level of operational attention  Medium = This is the default value  Low = e.g. a frequently occurring disruption which is well known"
+        type: string
+      location:
+        description: >-
+          Main road name / number (borough) or preset area name where the
+          disruption is located. This might be useful for a map popup where
+          space is limited.
+        type: string
+      status:
+        description: "This describes the status of the disruption.   Active = currently in progress  Active Long Term = currently in progress and long term Scheduled = scheduled to start within the next 180 days Recurring Works = planned maintenance works that follow a regular routine or pattern and whose next occurrence is to start within the next 180 days. Recently Cleared = recently cleared in the last 24 hours Note that the status of Scheduled or Recurring Works disruptions will change to Active when they start, and will change status again when they end."
+        type: string
+      geography:
+        $ref: '#/definitions/DbGeography'
+      geometry:
+        $ref: '#/definitions/DbGeography'
+      streets:
+        description: A collection of zero or more streets affected by the disruption.
+        type: array
+        items:
+          $ref: '#/definitions/Street'
+      isProvisional:
+        description: >-
+          True if the disruption is planned on a future date that is open to
+          change
+        type: boolean
+      hasClosures:
+        description: "True if any of the affected Streets have a \"Full Closure\" status, false otherwise. A RoadDisruption that has HasClosures is considered a  Severe or Serious disruption for severity filtering purposes."
+        type: boolean
+      linkText:
+        description: The text of any associated link
+        type: string
+      linkUrl:
+        description: The url of any associated link
+        type: string
+      roadProject:
+        $ref: '#/definitions/RoadProject'
+      publishStartDate:
+        format: date-time
+        description: TDM Additional properties
+        type: string
+      publishEndDate:
+        format: date-time
+        type: string
+      timeFrame:
+        type: string
+      roadDisruptionLines:
+        type: array
+        items:
+          $ref: '#/definitions/RoadDisruptionLine'
+      roadDisruptionImpactAreas:
+        type: array
+        items:
+          $ref: '#/definitions/RoadDisruptionImpactArea'
+  Street:
+    type: object
+    properties:
+      name:
+        description: Street name
+        type: string
+      closure:
+        description: "Type of road closure. Some example values: Open = road is open, not blocked, not closed, not restricted. It maybe that the disruption has been moved out of the carriageway. Partial Closure = road is partially blocked, closed or restricted.  Full Closure = road is fully blocked or closed."
+        type: string
+      directions:
+        description: "The direction of the disruption on the street. Some example values: All Directions All Approaches Clockwise Anti-Clockwise Northbound Eastbound Southbound Westbound Both Directions"
+        type: string
+      segments:
+        description: >-
+          Geographic description of the sections of this street that are
+          affected.
+        type: array
+        items:
+          $ref: '#/definitions/StreetSegment'
+      sourceSystemId:
+        format: int64
+        description: >-
+          The ID from the source system of the disruption that this street
+          belongs to.
+        type: integer
+      sourceSystemKey:
+        description: >-
+          The key of the source system of the disruption that this street
+          belongs to.
+        type: string
+  RoadProject:
+    type: object
+    properties:
+      projectId:
+        type: string
+      schemeName:
+        type: string
+      projectName:
+        type: string
+      projectDescription:
+        type: string
+      projectPageUrl:
+        type: string
+      consultationPageUrl:
+        type: string
+      consultationStartDate:
+        format: date-time
+        type: string
+      consultationEndDate:
+        format: date-time
+        type: string
+      constructionStartDate:
+        format: date-time
+        type: string
+      constructionEndDate:
+        format: date-time
+        type: string
+      boroughsBenefited:
+        type: array
+        items:
+          type: string
+      cycleSuperhighwayId:
+        type: string
+      phase:
+        enum:
+          - Unscoped
+          - Concept
+          - ConsultationEnded
+          - Consultation
+          - Construction
+          - Complete
+        type: string
+      contactName:
+        type: string
+      contactEmail:
+        type: string
+      externalPageUrl:
+        type: string
+      projectSummaryPageUrl:
+        type: string
+  RoadDisruptionLine:
+    type: object
+    properties:
+      id:
+        format: int32
+        type: integer
+      roadDisruptionId:
+        type: string
+      isDiversion:
+        type: boolean
+      multiLineString:
+        $ref: '#/definitions/DbGeography'
+      startDate:
+        format: date-time
+        type: string
+      endDate:
+        format: date-time
+        type: string
+      startTime:
+        type: string
+      endTime:
+        type: string
+  RoadDisruptionImpactArea:
+    type: object
+    properties:
+      id:
+        format: int32
+        type: integer
+      roadDisruptionId:
+        type: string
+      polygon:
+        $ref: '#/definitions/DbGeography'
+      startDate:
+        format: date-time
+        type: string
+      endDate:
+        format: date-time
+        type: string
+      startTime:
+        type: string
+      endTime:
+        type: string
+  StreetSegment:
+    type: object
+    properties:
+      toid:
+        description: >-
+          A 16 digit unique integer identifying a OS ITN (Ordnance Survey
+          Integrated Transport Network) road link.
+        type: string
+      lineString:
+        description: >-
+          geoJSON formatted LineString containing two latitude/longitude (WGS84)
+          pairs that identify the start and end points of the street segment.
+        type: string
+      sourceSystemId:
+        format: int64
+        description: >-
+          The ID from the source system of the disruption that this street
+          belongs to.
+        type: integer
+      sourceSystemKey:
+        description: >-
+          The key of the source system of the disruption that this street
+          belongs to.
+        type: string
+  StopPointCategory:
+    type: object
+    properties:
+      category:
+        type: string
+      availableKeys:
+        type: array
+        items:
+          type: string
+  LineServiceType:
+    type: object
+    properties:
+      lineName:
+        type: string
+      lineSpecificServiceTypes:
+        type: array
+        items:
+          $ref: '#/definitions/LineSpecificServiceType'
+  LineSpecificServiceType:
+    type: object
+    properties:
+      serviceType:
+        $ref: '#/definitions/LineServiceTypeInfo'
+      stopServesServiceType:
+        type: boolean
+  StopPointRouteSection:
+    type: object
+    properties:
+      naptanId:
+        type: string
+      lineId:
+        type: string
+      mode:
+        type: string
+      validFrom:
+        format: date-time
+        type: string
+      validTo:
+        format: date-time
+        type: string
+      direction:
+        type: string
+      routeSectionName:
+        type: string
+      lineString:
+        type: string
+      isActive:
+        type: boolean
+      serviceType:
+        type: string
+      vehicleDestinationText:
+        type: string
+      destinationName:
+        type: string
+  DisruptedPoint:
+    type: object
+    properties:
+      atcoCode:
+        type: string
+      fromDate:
+        format: date-time
+        type: string
+      toDate:
+        format: date-time
+        type: string
+      description:
+        type: string
+      commonName:
+        type: string
+      type:
+        type: string
+      mode:
+        type: string
+      stationAtcoCode:
+        type: string
+      appearance:
+        type: string
+      additionalInformation:
+        type: string
+  StopPointsResponse:
+    description: A paged response containing StopPoints
+    type: object
+    properties:
+      centrePoint:
+        description: The centre latitude/longitude of this list of StopPoints
+        type: array
+        items:
+          format: double
+          type: number
+      stopPoints:
+        description: Collection of stop points
+        type: array
+        items:
+          $ref: '#/definitions/StopPoint'
+      pageSize:
+        format: int32
+        description: >-
+          The maximum size of the page in this response i.e. the maximum number
+          of StopPoints
+        type: integer
+      total:
+        format: int32
+        description: The total number of StopPoints available across all pages
+        type: integer
+      page:
+        format: int32
+        description: The index of this page
+        type: integer
