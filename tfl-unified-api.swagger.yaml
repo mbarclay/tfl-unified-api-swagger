@@ -2433,9 +2433,7 @@ paths:
           in: path
           description: "A comma-seperated list of stop point ids. Max. approx. 20 ids. You can use /StopPoint/Search/{query} endpoint to find a stop point id from a station name."
           required: true
-          type: array
-          items:
-            type: string
+          type: string
         - name: getFamily
           in: query
           description: >-
@@ -2716,9 +2714,7 @@ paths:
             A comma-separated list of vehicle ids e.g. LX58CFV,LX11AZB,LX58CFE.
             Max approx. 25 ids.
           required: true
-          type: array
-          items:
-            type: string
+          type: string
       responses:
         '200':
           description: OK
